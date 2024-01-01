@@ -18,6 +18,164 @@ if (!isset($file_access)) die("Direct File Access Denied");
         <?php
         if (!isset($_POST['submit'])) {
         ?>
+                <div class="row">
+
+<?php 
+require_once('../admin/config.php');
+
+?>
+    <div class="col-lg-12">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <?php
+$qry = $conn->query("SELECT * FROM `schedule_settings`");
+$meta = array_column($qry->fetch_all(MYSQLI_ASSOC),'meta_value','meta_field');
+?>
+
+<?php
+$sched_arr = [];
+?>
+<div class="card">
+<div class="card-body">
+    <div id="calendar"></div>
+</div>
+</div>
+<style>
+.fc-event-title {
+color: black !important;
+}
+.fc-event:hover, .fc-event-selected {
+    color: black !important;
+}
+a.fc-list-day-text {
+    color: black !important;
+}
+.fc-event:hover, .fc-event-selected {
+    color: black !important;
+    cursor: pointer;
+}
+</style>
+<?php
+$sched_query = $conn->query("SELECT a.*,p.name FROM `appointments` a inner join `patient_list` p on a.patient_id = p.id");
+$sched_arr = json_encode($sched_query->fetch_all(MYSQLI_ASSOC));
+$schedule_settings = json_encode($meta);
+?>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+var Calendar = FullCalendar.Calendar;
+var date = new Date();
+var d = date.getDate(),
+    m = date.getMonth(),
+    y = date.getFullYear();
+var scheds = JSON.parse('<?php echo $sched_arr ?>');
+var scheduleSettings = JSON.parse('<?php echo $schedule_settings ?>');
+
+var calendarEl = document.getElementById('calendar');
+
+var calendar = new Calendar(calendarEl, {
+    initialView: "dayGridMonth",
+    headerToolbar: {
+    right: "dayGridWeek,dayGridMonth,listDay prev,next"
+    },
+    buttonText: {
+    dayGridWeek: "Week",
+    dayGridMonth: "Month",
+    listDay: "Day",
+    listWeek: "Week",
+    },
+    themeSystem: 'bootstrap',
+    events: function(fetchInfo, successCallback) {
+    var events = [];
+    Object.keys(scheds).forEach(k => {
+        var bg = 'var(--primary)';
+        if (scheds[k].status == 0)
+        bg = 'var(--primary)';
+        if (scheds[k].status == 1)
+        bg = 'var(--success)';
+        events.push({
+        id: scheds[k].id,
+        title: scheds[k].name,
+        start: moment(scheds[k].date_sched).format('YYYY-MM-DD[T]HH:mm'),
+        backgroundColor: bg,
+        borderColor: bg,
+        });
+    });
+
+    // Add unavailable dates and holidays
+    var unavailableDates = scheduleSettings.holiday_schedule.split(',');
+    unavailableDates.forEach(date => {
+        events.push({
+        title: 'Holiday',
+        start: date,
+        backgroundColor: 'var(--danger)',
+        borderColor: 'var(--danger)',
+        rendering: 'background'
+        });
+    });
+
+    // Add "Appointment Available" for all allowed days without appointments
+    var allowedDays = scheduleSettings.day_schedule.split(',');
+    var currentMonth = moment().month();
+    var currentYear = moment().year();
+    var daysInMonth = moment().daysInMonth();
+
+    for (var day = 1; day <= daysInMonth; day++) {
+        var date = moment([currentYear, currentMonth, day]);
+        var dayName = date.format('dddd');
+        if (allowedDays.includes(dayName)) {
+        var isHoliday = unavailableDates.includes(date.format('YYYY-MM-DD'));
+        if (!isHoliday) {
+            var hasAppointment = scheds.some(sched => moment(sched.date_sched).isSame(date, 'day'));
+            if (!hasAppointment) {
+            events.push({
+                title: 'Appointment Available',
+                start: date.format('YYYY-MM-DD'),
+                backgroundColor: 'var(--success)',
+                borderColor: 'var(--success)',
+                rendering: 'background'
+            });
+            }
+        }
+        } else {
+        events.push({
+            title: dayName + ' is not Available',
+            start: date.format('YYYY-MM-DD'),
+            backgroundColor: 'var(--warning)',
+            borderColor: 'var(--warning)',
+            rendering: 'background'
+        });
+        }
+    }
+
+    successCallback(events);
+    },
+    eventClick: function(info) {
+    if (info.event.extendedProps.rendering !== 'background') {
+        uni_modal("Appointment Details", "appointments/view_details.php?id=" + info.event.id);
+    }
+    },
+    editable: false,
+    selectable: true,
+    selectAllow: function(select) {
+    var dayName = moment(select.start).format('dddd');
+    var allowedDays = scheduleSettings.day_schedule.split(',');
+    if (moment().subtract(1, 'day').diff(select.start) < 0 && allowedDays.includes(dayName)) {
+        return true;
+    } else {
+        return false;
+    }
+    }
+});
+
+calendar.render();
+document.getElementById('location').addEventListener('change', function() {
+    location.href = "./?lid=" + this.value;
+});
+});
+</script>
+</div>
+</div>
         <div class="row">
             <div class="col-lg-12">
                 <div class="card">
@@ -48,162 +206,7 @@ if (!isset($file_access)) die("Direct File Access Denied");
                 </div>
             </div>
         </div>
-        <div class="row">
-            
-            <div class="col-lg-12">
-         
-            <?php
-    $qry = $conn->query("SELECT * FROM `schedule_settings`");
-    $meta = array_column($qry->fetch_all(MYSQLI_ASSOC),'meta_value','meta_field');
-    ?>
 
-    <?php
-    $sched_arr = [];
-    ?>
-        <div class="card">
-        <div class="card-body">
-            <div id="calendar"></div>
-        </div>
-        </div>
-    <style>
-        .fc-event:hover, .fc-event-selected {
-            color: black !important;
-        }
-        a.fc-list-day-text {
-            color: black !important;
-        }
-        .fc-event:hover, .fc-event-selected {
-            color: black !important;
-            background: var(--light);
-            cursor: pointer;
-        }
-    </style>
-    <?php
-    $sched_query = $conn->query("SELECT a.*,p.name FROM `appointments` a inner join `patient_list` p on a.patient_id = p.id");
-    $sched_arr = json_encode($sched_query->fetch_all(MYSQLI_ASSOC));
-    $schedule_settings = json_encode($meta);
-    ?>
-  <link rel="stylesheet" href="../admin/plugins/fullcalendar/main.css">
-  <link rel="stylesheet" href="../admin/plugins/fullcalendar/main.min.js">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-        var Calendar = FullCalendar.Calendar;
-        var date = new Date();
-        var d = date.getDate(),
-            m = date.getMonth(),
-            y = date.getFullYear();
-        var scheds = JSON.parse('<?php echo $sched_arr ?>');
-        var scheduleSettings = JSON.parse('<?php echo $schedule_settings ?>');
-
-        var calendarEl = document.getElementById('calendar');
-
-        var calendar = new Calendar(calendarEl, {
-            initialView: "dayGridMonth",
-            headerToolbar: {
-            right: "dayGridWeek,dayGridMonth,listDay prev,next"
-            },
-            buttonText: {
-            dayGridWeek: "Week",
-            dayGridMonth: "Month",
-            listDay: "Day",
-            listWeek: "Week",
-            },
-            themeSystem: 'bootstrap',
-            events: function(fetchInfo, successCallback) {
-            var events = [];
-            Object.keys(scheds).forEach(k => {
-                var bg = 'var(--primary)';
-                if (scheds[k].status == 0)
-                bg = 'var(--primary)';
-                if (scheds[k].status == 1)
-                bg = 'var(--success)';
-                events.push({
-                id: scheds[k].id,
-                title: scheds[k].name,
-                start: moment(scheds[k].date_sched).format('YYYY-MM-DD[T]HH:mm'),
-                backgroundColor: bg,
-                borderColor: bg,
-                });
-            });
-
-            // Add unavailable dates and holidays
-            var unavailableDates = scheduleSettings.holiday_schedule.split(',');
-            unavailableDates.forEach(date => {
-                events.push({
-                title: 'Holiday',
-                start: date,
-                backgroundColor: 'var(--danger)',
-                borderColor: 'var(--danger)',
-                rendering: 'background'
-                });
-            });
-
-            // Add "Appointment Available" for all allowed days without appointments
-            var allowedDays = scheduleSettings.day_schedule.split(',');
-            var currentMonth = moment().month();
-            var currentYear = moment().year();
-            var daysInMonth = moment().daysInMonth();
-
-            for (var day = 1; day <= daysInMonth; day++) {
-                var date = moment([currentYear, currentMonth, day]);
-                var dayName = date.format('dddd');
-                if (allowedDays.includes(dayName)) {
-                var isHoliday = unavailableDates.includes(date.format('YYYY-MM-DD'));
-                if (!isHoliday) {
-                    var hasAppointment = scheds.some(sched => moment(sched.date_sched).isSame(date, 'day'));
-                    if (!hasAppointment) {
-                    events.push({
-                        title: 'Appointment Available',
-                        start: date.format('YYYY-MM-DD'),
-                        backgroundColor: 'var(--success)',
-                        borderColor: 'var(--success)',
-                        rendering: 'background'
-                    });
-                    }
-                }
-                } else {
-                events.push({
-                    title: dayName + ' is not Available',
-                    start: date.format('YYYY-MM-DD'),
-                    backgroundColor: 'var(--warning)',
-                    borderColor: 'var(--warning)',
-                    rendering: 'background'
-                });
-                }
-            }
-
-            successCallback(events);
-            },
-            eventClick: function(info) {
-            if (info.event.extendedProps.rendering !== 'background') {
-                uni_modal("Appointment Details", "appointments/view_details.php?id=" + info.event.id);
-            }
-            },
-            editable: false,
-            selectable: true,
-            selectAllow: function(select) {
-            var dayName = moment(select.start).format('dddd');
-            var allowedDays = scheduleSettings.day_schedule.split(',');
-            if (moment().subtract(1, 'day').diff(select.start) < 0 && allowedDays.includes(dayName)) {
-                return true;
-            } else {
-                return false;
-            }
-            }
-        });
-
-        calendar.render();
-        document.getElementById('location').addEventListener('change', function() {
-            location.href = "./?lid=" + this.value;
-        });
-        });
-    </script>
-
-
-            </div>
-        </div>
         <?php
         } else {
             $class = $_POST['class'];
