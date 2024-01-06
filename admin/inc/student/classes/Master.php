@@ -1,5 +1,10 @@
 <?php
 require_once('../config.php');
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require 'vendor/autoload.php'; 
+
 Class Master extends DBConnection {
 	private $settings;
 	public function __construct(){
@@ -22,6 +27,8 @@ Class Master extends DBConnection {
 			exit;
 		}
 	}
+
+	
 	function save_appointment(){
 		extract($_POST);
 		$sched_set_qry = $this->conn->query("SELECT * FROM `schedule_settings`");
@@ -34,7 +41,7 @@ Class Master extends DBConnection {
 		if(!in_array(strtolower(date("l",strtotime($date_sched))),explode(',',strtolower($sched_set['day_schedule'])))){
 			$resp['status'] = 'failed';
 			$resp['msg'] = "Selected Schedule Day of Week is invalid.";
-			return json_encode($resp);
+			return json_encode(value: $resp);
 			exit;
 		}
 		if(!( (strtotime($sched_time) >= strtotime($morning_start) && strtotime($sched_time) <= strtotime($morning_end)) || (strtotime($sched_time) >= strtotime($afternoon_start) && strtotime($sched_time) <= strtotime($afternoon_end)) )){
@@ -81,6 +88,71 @@ Class Master extends DBConnection {
 				$resp['status'] = 'success';
 				$resp['name'] = $name;
 				$this->settings->set_flashdata('success',' Appointment successfully saved');
+				
+				// Send email notification
+				require 'vendor/autoload.php'; // Include PHPMailer autoload
+
+				$mail = new PHPMailer(true);
+
+				try {
+					// SMTP Server Settings
+					$mail->isSMTP();
+					$mail->Host       = 'smtp.hostinger.com'; // Hostinger SMTP server
+					$mail->SMTPAuth   = true;
+					$mail->Username   = 'support@tcuregistrarrequest.site'; // Your email
+					$mail->Password   = '#228JyiuS'; // Your email password
+					$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
+					$mail->Port = 587;  // Use TLS port
+					$mail->SMTPDebug = 2;
+					// Email Settings
+					$mail->setFrom('support@tcuregistrarrequest.site', 'TCU Registrar');
+					$mail->addAddress($email, $name); // Recipient's email and name
+
+					$mail->isHTML(true);
+					$mail->Subject = 'Appointment Confirmation';
+					$mail->Body    = '<p>Hello '.$name.',</p><p>Your appointment has been successfully scheduled.</p>';
+					$mail->SMTPOptions = array(
+						'ssl' => array(
+							'verify_peer' => false,
+							'verify_peer_name' => false,
+							'allow_self_signed' => true
+						)
+					);
+					
+					$mail->send();
+					$resp['email_status'] = 'Email has been sent successfully.';
+				} catch (Exception $e) {
+					$resp['email_status'] = "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
+				}		try {
+					// SMTP Server Settings
+					$mail->isSMTP();
+					$mail->Host       = 'smtp.hostinger.com'; // Hostinger SMTP server
+					$mail->SMTPAuth   = true;
+					$mail->Username   = 'support@tcuregistrarrequest.site'; // Your email
+					$mail->Password   = '#228JyiuS'; // Your email password
+					$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
+					$mail->Port = 587;  // Use TLS port
+					$mail->SMTPDebug = 2;
+					// Email Settings
+					$mail->setFrom('support@tcuregistrarrequest.site', 'TCU Registrar');
+					$mail->addAddress($email, $name); // Recipient's email and name
+
+					$mail->isHTML(true);
+					$mail->Subject = 'Appointment Confirmation';
+					$mail->Body    = '<p>Hello '.$name.',</p><p>Your appointment has been successfully scheduled.</p>';
+					$mail->SMTPOptions = array(
+						'ssl' => array(
+							'verify_peer' => false,
+							'verify_peer_name' => false,
+							'allow_self_signed' => true
+						)
+					);
+					
+					$mail->send();
+					$resp['email_status'] = 'Email has been sent successfully.';
+				} catch (Exception $e) {
+					$resp['email_status'] = "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
+				}
 			}else{
 				$resp['status'] = 'failed';
 				$resp['msg'] = "There's an error while submitting the data.";

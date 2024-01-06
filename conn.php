@@ -2,7 +2,7 @@
 
 function connect()
 {
-    $conn = new mysqli("localhost", "u467106394_tcu", "p+o|Jh7T", "u467106394_tcu");
+    $conn = new mysqli("localhost", "root", "", "tcuregistrar");
     if (!$conn) die("Database is being upgrade!");
     return $conn;
 }

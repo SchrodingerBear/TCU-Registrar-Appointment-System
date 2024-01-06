@@ -1,5 +1,9 @@
 <?php
 require_once('../config.php');
+require '../../vendor/autoload.php'; 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 Class Master extends DBConnection {
 	private $settings;
 	public function __construct(){
@@ -18,7 +22,6 @@ Class Master extends DBConnection {
 			$resp['error'] = $this->conn->error;
 			if(isset($sql))
 			$resp['sql'] = $sql;
-			return json_encode($resp);
 			exit;
 		}
 	}
@@ -110,10 +113,72 @@ Class Master extends DBConnection {
 			$this->conn->query("DELETE FROM `patient_meta` where patient_id = '{$patient_id}'");
 			$save_meta = $this->conn->query($sql);
 			$this->capture_err();
+		
 			if($save_sched && $save_meta){
 				$resp['status'] = 'success';
 				$resp['name'] = $name;
 				$this->settings->set_flashdata('success',' Appointment successfully saved');
+				
+
+				$mail = new PHPMailer(true);
+
+				try {
+					// SMTP Server Settings
+					$mail->isSMTP();
+					$mail->Host       = 'smtp.hostinger.com'; // Hostinger SMTP server
+					$mail->SMTPAuth   = true;
+					$mail->Username   = 'support@tcuregistrarrequest.site'; // Your email
+					$mail->Password   = '#228JyiuS'; // Your email password
+					$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
+					$mail->Port = 587;  // Use TLS port
+					// Email Settings
+					$mail->setFrom('support@tcuregistrarrequest.site', 'TCU Registrar');
+					$mail->addAddress($email, $name); // Recipient's email and name
+
+					$mail->isHTML(true);
+					$mail->Subject = 'Appointment Confirmation';
+					$mail->Body    = '<p>Hello '.$name.',</p><p>Your appointment has been successfully scheduled.</p>';
+					$mail->SMTPOptions = array(
+						'ssl' => array(
+							'verify_peer' => false,
+							'verify_peer_name' => false,
+							'allow_self_signed' => true
+						)
+					);
+					
+					$mail->send();
+					$resp['email_status'] = 'Email has been sent successfully.';
+				} catch (Exception $e) {
+					$resp['email_status'] = "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
+				}		try {
+					// SMTP Server Settings
+					$mail->isSMTP();
+					$mail->Host       = 'smtp.hostinger.com'; // Hostinger SMTP server
+					$mail->SMTPAuth   = true;
+					$mail->Username   = 'support@tcuregistrarrequest.site'; // Your email
+					$mail->Password   = '#228JyiuS'; // Your email password
+					$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
+					$mail->Port = 587;  // Use TLS port
+					// Email Settings
+					$mail->setFrom('support@tcuregistrarrequest.site', 'TCU Registrar');
+					$mail->addAddress($email, $name); // Recipient's email and name
+
+					$mail->isHTML(true);
+					$mail->Subject = 'Appointment Confirmation';
+					$mail->Body    = '<p>Hello '.$name.',</p><p>Your appointment has been successfully scheduled.</p>';
+					$mail->SMTPOptions = array(
+						'ssl' => array(
+							'verify_peer' => false,
+							'verify_peer_name' => false,
+							'allow_self_signed' => true
+						)
+					);
+					
+					$mail->send();
+					$resp['email_status'] = 'Email has been sent successfully.';
+				} catch (Exception $e) {
+					$resp['email_status'] = "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
+				}
 			}else{
 				$resp['status'] = 'failed';
 				$resp['msg'] = "There's an error while submitting the data.";
