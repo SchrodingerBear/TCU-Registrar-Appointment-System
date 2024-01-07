@@ -137,35 +137,15 @@ Class Master extends DBConnection {
 
 					$mail->isHTML(true);
 					$mail->Subject = 'Appointment Confirmation';
-					$mail->Body    = '<p>Hello '.$name.',</p><p>Your appointment has been successfully scheduled.</p>';
-					$mail->SMTPOptions = array(
-						'ssl' => array(
-							'verify_peer' => false,
-							'verify_peer_name' => false,
-							'allow_self_signed' => true
-						)
-					);
-					
-					$mail->send();
-					$resp['email_status'] = 'Email has been sent successfully.';
-				} catch (Exception $e) {
-					$resp['email_status'] = "Email could not be sent. Mailer Error: {$mail->ErrorInfo}";
-				}		try {
-					// SMTP Server Settings
-					$mail->isSMTP();
-					$mail->Host       = 'smtp.hostinger.com'; // Hostinger SMTP server
-					$mail->SMTPAuth   = true;
-					$mail->Username   = 'support@tcuregistrarrequest.site'; // Your email
-					$mail->Password   = '#228JyiuS'; // Your email password
-					$mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS; 
-					$mail->Port = 587;  // Use TLS port
-					// Email Settings
-					$mail->setFrom('support@tcuregistrarrequest.site', 'TCU Registrar');
-					$mail->addAddress($email, $name); // Recipient's email and name
-
-					$mail->isHTML(true);
-					$mail->Subject = 'Appointment Confirmation';
-					$mail->Body    = '<p>Hello '.$name.',</p><p>Your appointment has been successfully scheduled.</p>';
+					$mail->Body    = '<p>Appointment Details</p>
+									  <p>Appointment Schedule: '.date("F j, Y", strtotime($date_sched)).'</p>
+									  <p>Student Name: '.$name.'</p>
+									  <p>Date of Birth: '.date("F j, Y", strtotime($dob)).'</p>
+									  <p>Student Id: '.$student_id.'</p>
+									  <p>Email: '.$email.'</p>
+									  <p>Documents: '.$documents.'</p>
+									  <p>Notes: '.$notes.'</p>
+									  <p>Status: '.$status.'</p>';
 					$mail->SMTPOptions = array(
 						'ssl' => array(
 							'verify_peer' => false,
