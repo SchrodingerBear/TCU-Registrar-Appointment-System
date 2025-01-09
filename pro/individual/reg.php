@@ -115,12 +115,19 @@ document.getElementById('appointment_form').addEventListener('submit', function(
                 location.reload();
             });
         } else {
+            // Generate a random unique ID in hex format
+            const uniqueId = Math.random().toString(16).substr(2, 8).toUpperCase();
+            const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${uniqueId}&size=150x150`;
+
             Swal.fire({
                 icon: 'success',
                 title: 'Appointment saved successfully.',
                 html:
                       'Download the official request form, which must be filled out accurately and completely. This form is required for submission at the registrar\'s office, where it will be reviewed and validated by staff to confirm the completeness and accuracy of your records.<br><br>' +
-                      '<a href="Registrar_Form.pdf" class="btn btn-primary" download>Download Registrar Form</a>'
+                      '<a href="Registrar_Form.pdf" class="btn btn-primary" download>Download Registrar Form</a><br><br>' +
+                      'Here is your unique QR code for verification:<br>' +
+                      'CODE: ' + uniqueId + '<br>' +
+                      `<img src="${qrCodeUrl}" alt="QR Code">`
             }).then(() => {
                 location.reload();
             });

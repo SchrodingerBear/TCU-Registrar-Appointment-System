@@ -8,6 +8,7 @@ $qry = $conn->query("SELECT * FROM `schedule_settings`");
 $meta = array_column($qry->fetch_all(MYSQLI_ASSOC),'meta_value','meta_field');
 ?>
 
+
 <div class="col-lg-12">
     <div class="card card-outline card-primary">
         <div class="card-header">
@@ -85,8 +86,42 @@ $meta = array_column($qry->fetch_all(MYSQLI_ASSOC),'meta_value','meta_field');
                 </div>
                 <div class="form-group">
                     <label for="" class="control-label">Holidays</label>
-                    <textarea class="form-control" name="holiday_schedule" rows="3" placeholder="Enter holidays separated by commas (e.g., 2025-01-10,2025-12-25)"><?php echo isset($meta['holiday_schedule']) ? $meta['holiday_schedule'] : "" ?></textarea>
+                    <div id="holiday_schedule_container">
+                        <?php 
+                        if(isset($meta['holiday_schedule'])):
+                            $holidays = explode(',', $meta['holiday_schedule']);
+                            foreach($holidays as $holiday):
+                        ?>
+                        <div class="input-group mb-2 holiday-item">
+                            <input type="date" class="form-control" name="holiday_schedule[]" value="<?php echo $holiday; ?>">
+                            <div class="input-group-append">
+                                <button class="btn btn-danger remove-holiday" type="button">&times;</button>
+                            </div>
+                        </div>
+                        <?php 
+                            endforeach;
+                        endif;
+                        ?>
+                    </div>
+                    <button class="btn btn-primary btn-sm" type="button" id="add_holiday">Add Holiday</button>
                 </div>
+<script>
+    $(document).ready(function(){
+        $('#add_holiday').click(function(){
+            var holidayItem = `<div class="input-group mb-2 holiday-item">
+                                    <input type="date" class="form-control" name="holiday_schedule[]">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-danger remove-holiday" type="button">&times;</button>
+                                    </div>
+                                </div>`;
+            $('#holiday_schedule_container').append(holidayItem);
+        });
+
+        $(document).on('click', '.remove-holiday', function(){
+            $(this).closest('.holiday-item').remove();
+        });
+    });
+</script>
             </form>
         </div>
         <div class="card-footer">
