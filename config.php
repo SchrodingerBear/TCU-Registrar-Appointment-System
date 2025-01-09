@@ -1,5 +1,5 @@
 <?php
-$title = 'Online Appointment System';
+$title = 'TCU Appointment System';
 //E-Ticketing System For Railway
 $supervisor_name = "";
 $developer_name = "";
