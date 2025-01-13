@@ -89,12 +89,10 @@ $schedule_settings = json_encode($meta);
 
                 // Add "Appointment Available" for all allowed days without appointments
                 var allowedDays = scheduleSettings.day_schedule.split(',');
-                var currentMonth = moment().month();
-                var currentYear = moment().year();
-                var daysInMonth = moment().daysInMonth();
+                var startDate = moment().startOf('year'); // Start from the beginning of the year
+                var endDate = moment().endOf('year'); // End at the end of the year
 
-                for (var day = 1; day <= daysInMonth; day++) {
-                    var date = moment([currentYear, currentMonth, day]);
+                for (var date = startDate; date.isBefore(endDate); date.add(1, 'days')) {
                     var dayName = date.format('dddd');
                     if (allowedDays.includes(dayName)) {
                         var isHoliday = unavailableDates.includes(date.format('YYYY-MM-DD'));

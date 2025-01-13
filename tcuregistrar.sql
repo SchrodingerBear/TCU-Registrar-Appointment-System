@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Jan 09, 2025 at 01:58 AM
+-- Generation Time: Jan 13, 2025 at 02:24 PM
 -- Server version: 10.4.33-MariaDB-log
 -- PHP Version: 7.4.33
 
@@ -46,7 +46,11 @@ INSERT INTO `appointments` (`id`, `patient_id`, `date_sched`, `ailment`, `status
 (3, 24, '2025-01-27 09:41:00', 'seancvpugosa@gmail.com', 0, '2025-01-09 09:41:43'),
 (4, 25, '2025-02-06 09:45:00', 'seancvpugosa@gmail.com', 0, '2025-01-09 09:45:53'),
 (5, 9, '2025-03-05 09:47:00', 'seancvpugosa@gmail.com', 0, '2025-01-09 09:48:08'),
-(6, 9, '2025-01-28 09:53:00', 'seancvpugosa@gmail.com', 0, '2025-01-09 09:53:45');
+(6, 9, '2025-01-28 09:53:00', 'seancvpugosa@gmail.com', 0, '2025-01-09 09:53:45'),
+(7, 9, '2025-01-17 08:13:00', 'ntes', 0, '2025-01-09 12:13:19'),
+(8, 9, '2025-01-20 13:02:00', '123', 0, '2025-01-09 13:02:45'),
+(9, 9, '2025-01-29 13:03:00', 'asdasd', 0, '2025-01-09 13:03:07'),
+(10, 9, '2025-02-07 13:03:00', 'asd', 0, '2025-01-09 13:03:43');
 
 -- --------------------------------------------------------
 
@@ -361,14 +365,14 @@ INSERT INTO `patient_meta` (`patient_id`, `meta_field`, `meta_value`, `date_crea
 (25, 'department', 'College of Arts and Sciences (CAS)', '2025-01-09 09:45:53', 190),
 (25, 'dob', '2025-02-04', '2025-01-09 09:45:53', 191),
 (25, 'documents', '[\"Diplomas and Certificate\"]', '2025-01-09 09:45:53', 192),
-(9, 'id', '', '2025-01-09 09:53:45', 201),
-(9, 'patient_id', '', '2025-01-09 09:53:45', 202),
-(9, 'name', 'seancvpugosa@gmail.com', '2025-01-09 09:53:45', 203),
-(9, 'email', 'seancvpugosa@gmail.com', '2025-01-09 09:53:45', 204),
-(9, 'contact', '9', '2025-01-09 09:53:45', 205),
-(9, 'department', 'College of Arts and Sciences (CAS)', '2025-01-09 09:53:45', 206),
-(9, 'dob', '2025-01-25', '2025-01-09 09:53:45', 207),
-(9, 'documents', '[\"Diplomas and Certificate\"]', '2025-01-09 09:53:45', 208);
+(9, 'id', '', '2025-01-09 13:03:43', 233),
+(9, 'patient_id', '', '2025-01-09 13:03:43', 234),
+(9, 'name', 'seancvpugosa@gmail.com', '2025-01-09 13:03:43', 235),
+(9, 'email', 'seancvpugosa@gmail.com', '2025-01-09 13:03:43', 236),
+(9, 'contact', '9', '2025-01-09 13:03:43', 237),
+(9, 'department', 'College of Arts and Sciences (CAS)', '2025-01-09 13:03:43', 238),
+(9, 'dob', '2025-01-14', '2025-01-09 13:03:43', 239),
+(9, 'documents', '[\"Good Moral\"]', '2025-01-09 13:03:43', 240);
 
 -- --------------------------------------------------------
 
@@ -510,10 +514,10 @@ CREATE TABLE `schedule_settings` (
 --
 
 INSERT INTO `schedule_settings` (`meta_field`, `meta_value`, `date_create`, `id`) VALUES
-('day_schedule', 'Monday,Tuesday,Wednesday,Thursday', '2025-01-09 09:13:18', 21),
-('morning_schedule', '08:00,11:00', '2025-01-09 09:13:18', 22),
-('afternoon_schedule', '13:00,16:00', '2025-01-09 09:13:18', 23),
-('holiday_schedule', '2025-01-10,2025-01-23', '2025-01-09 09:13:18', 24);
+('day_schedule', 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday', '2025-01-09 12:33:05', 37),
+('morning_schedule', '08:00,11:00', '2025-01-09 12:33:05', 38),
+('afternoon_schedule', '13:00,16:00', '2025-01-09 12:33:05', 39),
+('holiday_schedule', '2025-01-10,2025-01-22', '2025-01-09 12:33:05', 40);
 
 -- --------------------------------------------------------
 
@@ -532,8 +536,8 @@ CREATE TABLE `system_info` (
 --
 
 INSERT INTO `system_info` (`id`, `meta_field`, `meta_value`) VALUES
-(1, 'name', 'Patient Appointment Scheduler System - PHP'),
-(6, 'short_name', 'PASS-PHP'),
+(1, 'name', 'TCU Appointment Scheduler System - PHP'),
+(6, 'short_name', 'TCU - ASS '),
 (11, 'logo', 'uploads/1630631400_clinic-logo.png'),
 (13, 'user_avatar', 'uploads/user_avatar.jpg'),
 (14, 'cover', 'uploads/1630631400_clinic-cover.jpg');
@@ -659,7 +663,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `appointments`
 --
 ALTER TABLE `appointments`
-  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(30) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `location`
@@ -683,13 +687,13 @@ ALTER TABLE `patient_list`
 -- AUTO_INCREMENT for table `patient_meta`
 --
 ALTER TABLE `patient_meta`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=209;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=241;
 
 --
 -- AUTO_INCREMENT for table `schedule_settings`
 --
 ALTER TABLE `schedule_settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `system_info`
