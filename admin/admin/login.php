@@ -34,7 +34,7 @@
         </div>
         <div class="row">
           <div class="col-8">
-            <a href="<?php echo base_url ?>">Go to Website</a>
+            <a href="../../">Go to Website</a>
           </div>
           <!-- /.col -->
           <div class="col-4">
