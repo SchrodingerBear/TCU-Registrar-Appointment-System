@@ -61,67 +61,67 @@ $sched_arr = json_encode($sched_query->fetch_all(MYSQLI_ASSOC));
 $schedule_settings = json_encode($meta);
 ?>
 
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var Calendar = FullCalendar.Calendar;
-    var date = new Date();
-    var d = date.getDate(),
-        m = date.getMonth(),
-        y = date.getFullYear();
-    var scheds = JSON.parse('<?php echo $sched_arr ?>');
-    var scheduleSettings = JSON.parse('<?php echo $schedule_settings ?>');
+    $(function(){
+        $('.select2').select2()
+        var Calendar = FullCalendar.Calendar;
+        var date = new Date()
+        var d    = date.getDate(),
+            m    = date.getMonth(),
+            y    = date.getFullYear()
+        var scheds = $.parseJSON('<?php echo ($sched_arr) ?>');
+        var scheduleSettings = $.parseJSON('<?php echo ($schedule_settings) ?>');
 
-    var calendarEl = document.getElementById('calendar');
+        var calendarEl = document.getElementById('calendar');
 
-    var calendar = new Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        headerToolbar: {
-            right: "dayGridWeek,dayGridMonth,listDay prev,next"
-        },
-        buttonText: {
-            dayGridWeek: "Week",
-            dayGridMonth: "Month",
-            listDay: "Day",
-            listWeek: "Week",
-        },
-        themeSystem: 'bootstrap',
-        events: function(fetchInfo, successCallback) {
-            var events = [];
-            Object.keys(scheds).forEach(k => {
-                var bg = 'var(--primary)';
-                if (scheds[k].status == 0)
-                    bg = 'var(--primary)';
-                if (scheds[k].status == 1)
-                    bg = 'var(--success)';
-                events.push({
-                    id: scheds[k].id,
-                    title: scheds[k].name,
-                    start: moment(scheds[k].date_sched).format('YYYY-MM-DD[T]HH:mm'),
-                    backgroundColor: bg,
-                    borderColor: bg,
+        var calendar = new Calendar(calendarEl, {
+            initialView: "dayGridMonth",
+            headerToolbar: {
+                right: "dayGridWeek,dayGridMonth,listDay prev,next"
+            },
+            buttonText: {
+                dayGridWeek: "Week",
+                dayGridMonth: "Month",
+                listDay: "Day",
+                listWeek: "Week",
+            },
+            themeSystem: 'bootstrap',
+            events: function(event, successCallback) {
+                var events = [];
+                Object.keys(scheds).map(k => {
+                    var bg = 'var(--primary)';
+                    if (scheds[k].status == 0)
+                        bg = 'var(--primary)';
+                    if (scheds[k].status == 1)
+                        bg = 'var(--success)';
+                    events.push({
+                        id: scheds[k].id,
+                        title: scheds[k].name,
+                        start: moment(scheds[k].date_sched).format('YYYY-MM-DD[T]HH:mm'),
+                        backgroundColor: bg,
+                        borderColor: bg,
+                    });
                 });
-            });
 
-            // Add unavailable dates and holidays
-            var unavailableDates = scheduleSettings.holiday_schedule.split(',');
-            unavailableDates.forEach(date => {
-                events.push({
-                    title: 'Holiday',
-                    start: date,
-                    backgroundColor: 'var(--danger)',
-                    borderColor: 'var(--danger)',
-                    rendering: 'background'
+                // Add unavailable dates and holidays
+                var unavailableDates = scheduleSettings.holiday_schedule.split(',');
+                unavailableDates.forEach(date => {
+                    events.push({
+                        title: 'Holiday',
+                        start: date,
+                        backgroundColor: 'var(--danger)',
+                        borderColor: 'var(--danger)',
+                        rendering: 'background'
+                    });
                 });
-            });
 
-            // Add "Appointment Available" for all allowed days without appointments in all months except the current month
-            var allowedDays = scheduleSettings.day_schedule.split(',');
-            for (var month = 0; month < 12; month++) {
-                if (month === currentMonth) continue; // Skip the current month
-                var daysInMonth = moment([currentYear, month]).daysInMonth();
+                // Add "Appointment Available" for all allowed days without appointments
+                var allowedDays = scheduleSettings.day_schedule.split(',');
+                var startDate = moment().startOf('year'); // Start from the beginning of the year
+                var endDate = moment().endOf('year'); // End at the end of the year
 
-                for (var day = 1; day <= daysInMonth; day++) {
-                    var date = moment([currentYear, month, day]);
+                for (var date = startDate; date.isBefore(endDate); date.add(1, 'days')) {
                     var dayName = date.format('dddd');
                     if (allowedDays.includes(dayName)) {
                         var isHoliday = unavailableDates.includes(date.format('YYYY-MM-DD'));
@@ -147,35 +147,33 @@ document.addEventListener('DOMContentLoaded', function() {
                         });
                     }
                 }
-            }
 
-            successCallback(events);
-        },
-        eventClick: function(info) {
-            if (info.event.extendedProps.rendering !== 'background') {
-                uni_modal("Appointment Details", "appointments/view_details.php?id=" + info.event.id);
+                successCallback(events);
+            },
+            eventClick: (info) => {
+                if (info.event.extendedProps.rendering !== 'background') {
+                    uni_modal("Appointment Details", "appointments/view_details.php?id=" + info.event.id)
+                }
+            },
+            editable: false,
+            selectable: true,
+            selectAllow: function(select) {
+                var dayName = moment(select.start).format('dddd');
+                var allowedDays = scheduleSettings.day_schedule.split(',');
+                if (moment().subtract(1, 'day').diff(select.start) < 0 && allowedDays.includes(dayName)) {
+                    return true;
+                } else {
+                    return false;
+                }
             }
-        },
-        editable: false,
-        selectable: true,
-        selectAllow: function(select) {
-            var dayName = moment(select.start).format('dddd');
-            var allowedDays = scheduleSettings.day_schedule.split(',');
-            if (moment().subtract(1, 'day').diff(select.start) < 0 && allowedDays.includes(dayName)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-    });
+        });
 
-    calendar.render();
-    document.getElementById('location').addEventListener('change', function() {
-        location.href = "./?lid=" + this.value;
-    });
-});
+        calendar.render();
+        $('#location').change(function() {
+            location.href = "./?lid=" + $(this).val();
+        })
+    })
 </script>
-
 </div>
 </div>
         <div class="row">
