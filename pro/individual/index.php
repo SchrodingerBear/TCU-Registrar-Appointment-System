@@ -63,117 +63,119 @@ $schedule_settings = json_encode($meta);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-var Calendar = FullCalendar.Calendar;
-var date = new Date();
-var d = date.getDate(),
-    m = date.getMonth(),
-    y = date.getFullYear();
-var scheds = JSON.parse('<?php echo $sched_arr ?>');
-var scheduleSettings = JSON.parse('<?php echo $schedule_settings ?>');
+    var Calendar = FullCalendar.Calendar;
+    var date = new Date();
+    var d = date.getDate(),
+        m = date.getMonth(),
+        y = date.getFullYear();
+    var scheds = JSON.parse('<?php echo $sched_arr ?>');
+    var scheduleSettings = JSON.parse('<?php echo $schedule_settings ?>');
 
-var calendarEl = document.getElementById('calendar');
+    var calendarEl = document.getElementById('calendar');
 
-var calendar = new Calendar(calendarEl, {
-    initialView: "dayGridMonth",
-    headerToolbar: {
-    right: "dayGridWeek,dayGridMonth,listDay prev,next"
-    },
-    buttonText: {
-    dayGridWeek: "Week",
-    dayGridMonth: "Month",
-    listDay: "Day",
-    listWeek: "Week",
-    },
-    themeSystem: 'bootstrap',
-    events: function(fetchInfo, successCallback) {
-    var events = [];
-    Object.keys(scheds).forEach(k => {
-        var bg = 'var(--primary)';
-        if (scheds[k].status == 0)
-        bg = 'var(--primary)';
-        if (scheds[k].status == 1)
-        bg = 'var(--success)';
-        events.push({
-        id: scheds[k].id,
-        title: scheds[k].name,
-        start: moment(scheds[k].date_sched).format('YYYY-MM-DD[T]HH:mm'),
-        backgroundColor: bg,
-        borderColor: bg,
-        });
-    });
-
-    // Add unavailable dates and holidays
-    var unavailableDates = scheduleSettings.holiday_schedule.split(',');
-    unavailableDates.forEach(date => {
-        events.push({
-        title: 'Holiday',
-        start: date,
-        backgroundColor: 'var(--danger)',
-        borderColor: 'var(--danger)',
-        rendering: 'background'
-        });
-    });
-
-    // Add "Appointment Available" for all allowed days without appointments
-    var allowedDays = scheduleSettings.day_schedule.split(',');
-    var currentMonth = moment().month();
-    var currentYear = moment().year();
-    var daysInMonth = moment().daysInMonth();
-
-    for (var day = 1; day <= daysInMonth; day++) {
-        var date = moment([currentYear, currentMonth, day]);
-        var dayName = date.format('dddd');
-        if (allowedDays.includes(dayName)) {
-        var isHoliday = unavailableDates.includes(date.format('YYYY-MM-DD'));
-        if (!isHoliday) {
-            var hasAppointment = scheds.some(sched => moment(sched.date_sched).isSame(date, 'day'));
-            if (!hasAppointment) {
-            events.push({
-                title: 'Appointment Available',
-                start: date.format('YYYY-MM-DD'),
-                backgroundColor: 'var(--success)',
-                borderColor: 'var(--success)',
-                rendering: 'background'
+    var calendar = new Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        headerToolbar: {
+            right: "dayGridWeek,dayGridMonth,listDay prev,next"
+        },
+        buttonText: {
+            dayGridWeek: "Week",
+            dayGridMonth: "Month",
+            listDay: "Day",
+            listWeek: "Week",
+        },
+        themeSystem: 'bootstrap',
+        events: function(fetchInfo, successCallback) {
+            var events = [];
+            Object.keys(scheds).forEach(k => {
+                var bg = 'var(--primary)';
+                if (scheds[k].status == 0)
+                    bg = 'var(--primary)';
+                if (scheds[k].status == 1)
+                    bg = 'var(--success)';
+                events.push({
+                    id: scheds[k].id,
+                    title: scheds[k].name,
+                    start: moment(scheds[k].date_sched).format('YYYY-MM-DD[T]HH:mm'),
+                    backgroundColor: bg,
+                    borderColor: bg,
+                });
             });
+
+            // Add unavailable dates and holidays
+            var unavailableDates = scheduleSettings.holiday_schedule.split(',');
+            unavailableDates.forEach(date => {
+                events.push({
+                    title: 'Holiday',
+                    start: date,
+                    backgroundColor: 'var(--danger)',
+                    borderColor: 'var(--danger)',
+                    rendering: 'background'
+                });
+            });
+
+            // Add "Appointment Available" for all allowed days without appointments in all months except the current month
+            var allowedDays = scheduleSettings.day_schedule.split(',');
+            for (var month = 0; month < 12; month++) {
+                if (month === currentMonth) continue; // Skip the current month
+                var daysInMonth = moment([currentYear, month]).daysInMonth();
+
+                for (var day = 1; day <= daysInMonth; day++) {
+                    var date = moment([currentYear, month, day]);
+                    var dayName = date.format('dddd');
+                    if (allowedDays.includes(dayName)) {
+                        var isHoliday = unavailableDates.includes(date.format('YYYY-MM-DD'));
+                        if (!isHoliday) {
+                            var hasAppointment = scheds.some(sched => moment(sched.date_sched).isSame(date, 'day'));
+                            if (!hasAppointment) {
+                                events.push({
+                                    title: 'Appointment Available',
+                                    start: date.format('YYYY-MM-DD'),
+                                    backgroundColor: 'var(--success)',
+                                    borderColor: 'var(--success)',
+                                    rendering: 'background'
+                                });
+                            }
+                        }
+                    } else {
+                        events.push({
+                            title: dayName + ' is not Available',
+                            start: date.format('YYYY-MM-DD'),
+                            backgroundColor: 'var(--warning)',
+                            borderColor: 'var(--warning)',
+                            rendering: 'background'
+                        });
+                    }
+                }
+            }
+
+            successCallback(events);
+        },
+        eventClick: function(info) {
+            if (info.event.extendedProps.rendering !== 'background') {
+                uni_modal("Appointment Details", "appointments/view_details.php?id=" + info.event.id);
+            }
+        },
+        editable: false,
+        selectable: true,
+        selectAllow: function(select) {
+            var dayName = moment(select.start).format('dddd');
+            var allowedDays = scheduleSettings.day_schedule.split(',');
+            if (moment().subtract(1, 'day').diff(select.start) < 0 && allowedDays.includes(dayName)) {
+                return true;
+            } else {
+                return false;
             }
         }
-        } else {
-        events.push({
-            title: dayName + ' is not Available',
-            start: date.format('YYYY-MM-DD'),
-            backgroundColor: 'var(--warning)',
-            borderColor: 'var(--warning)',
-            rendering: 'background'
-        });
-        }
-    }
+    });
 
-    successCallback(events);
-    },
-    eventClick: function(info) {
-    if (info.event.extendedProps.rendering !== 'background') {
-        uni_modal("Appointment Details", "appointments/view_details.php?id=" + info.event.id);
-    }
-    },
-    editable: false,
-    selectable: true,
-    selectAllow: function(select) {
-    var dayName = moment(select.start).format('dddd');
-    var allowedDays = scheduleSettings.day_schedule.split(',');
-    if (moment().subtract(1, 'day').diff(select.start) < 0 && allowedDays.includes(dayName)) {
-        return true;
-    } else {
-        return false;
-    }
-    }
-});
-
-calendar.render();
-document.getElementById('location').addEventListener('change', function() {
-    location.href = "./?lid=" + this.value;
-});
+    calendar.render();
+    document.getElementById('location').addEventListener('change', function() {
+        location.href = "./?lid=" + this.value;
+    });
 });
 </script>
+
 </div>
 </div>
         <div class="row">
