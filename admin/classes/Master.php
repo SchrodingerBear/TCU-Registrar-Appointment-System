@@ -144,8 +144,7 @@ Class Master extends DBConnection {
 														  <p>Date of Birth: '.date("F j, Y", strtotime($dob)).'</p>
 														  <p>Email: '.$email.'</p>
 														  <p>Documents: '.$documents.'</p>
-														  <p>Notes: '.$ailment.'</p>
-														  <p>Status: '.$status.'</p>';
+														  <p>Notes: '.$ailment.'</p>';
 					$mail->SMTPOptions = array(
 						'ssl' => array(
 							'verify_peer' => false,
