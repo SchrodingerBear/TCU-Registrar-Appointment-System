@@ -137,15 +137,15 @@ Class Master extends DBConnection {
 
 					$mail->isHTML(true);
 					$mail->Subject = 'Appointment Confirmation';
+					$documents = isset($_POST['documents']) ? implode(', ', $_POST['documents']) : 'None';
 					$mail->Body    = '<p>Appointment Details</p>
-									  <p>Appointment Schedule: '.date("F j, Y", strtotime($date_sched)).'</p>
-									  <p>Student Name: '.$name.'</p>
-									  <p>Date of Birth: '.date("F j, Y", strtotime($dob)).'</p>
-									  <p>Student Id: '.$student_id.'</p>
-									  <p>Email: '.$email.'</p>
-									  <p>Documents: '.$documents.'</p>
-									  <p>Notes: '.$notes.'</p>
-									  <p>Status: '.$status.'</p>';
+														  <p>Appointment Schedule: '.date("F j, Y", strtotime($date_sched)).'</p>
+														  <p>Student Name: '.$name.'</p>
+														  <p>Date of Birth: '.date("F j, Y", strtotime($dob)).'</p>
+														  <p>Email: '.$email.'</p>
+														  <p>Documents: '.$documents.'</p>
+														  <p>Notes: '.$ailment.'</p>
+														  <p>Status: '.$status.'</p>';
 					$mail->SMTPOptions = array(
 						'ssl' => array(
 							'verify_peer' => false,
